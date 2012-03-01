@@ -59,6 +59,13 @@ describe ReferralCandy do
     end
   end
 
+  describe ".referrals" do
+    it "should do http request" do
+      refcandy.stub(:do_http_request).and_return({'http_code' => '200'})
+      refcandy.referrals(1330584797, 1330585397, "customer@anafore.com")["http_code"].should eql "200"
+    end
+  end
+
   describe ".api_response" do
     it "should return hash with status code for non-json body" do
       refcandy.send(:api_response, 'non-json', '500').should == {'http_code' => '500'}

@@ -6,6 +6,7 @@ require 'uri'
 class ReferralCandy
   VERIFY_URL   = "https://my.referralcandy.com/api/v1/verify.json"
   PURCHASE_URL = "https://my.referralcandy.com/api/v1/purchase.json"
+  REFERRALS_URL = "https://my.referralcandy.com/api/v1/referrals.json"
 
   attr_reader :secret_key, :access_id
 
@@ -33,6 +34,20 @@ class ReferralCandy
     sig = signature(timestamp, params)
     params.merge!({ :signature => sig })
     res_hash = do_http_request PURCHASE_URL, params, :post
+  end
+
+  def referrals period_from, period_to, customer_email
+    timestamp = Time.now.to_i
+    params = {
+      :period_from => period_from,
+      :period_to => period_to,
+      :customer_email => customer_email,
+      :accessID  => self.access_id,
+      :timestamp => timestamp,
+    }
+    sig = signature(timestamp, params)
+    params.merge!({ :signature => sig })
+    res_hash = do_http_request REFERRALS_URL, params, :get
   end
 
   private
