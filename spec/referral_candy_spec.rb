@@ -16,9 +16,11 @@ describe ReferralCandy do
   describe ".signature" do
     it "should calculate the correct signature" do
       params = {
+        :timestamp => 1,
+        :accessID  => access_id,
         :name => "john"
       }
-      refcandy.send(:signature, 1, params).should == '25cb1ed0c5e9e64f09fa4db9ed7ff156'
+      refcandy.send(:signature, params).should == '25cb1ed0c5e9e64f09fa4db9ed7ff156'
     end
   end
 
@@ -26,7 +28,6 @@ describe ReferralCandy do
 
     it "should calculate correct signature with no params" do
       refcandy.stub(:do_http_request).and_return({'http_code' => '200'})
-      refcandy.should_receive(:signature).once
       refcandy.verify
     end
     it "should do http request" do

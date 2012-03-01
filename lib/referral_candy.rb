@@ -16,43 +16,33 @@ class ReferralCandy
   end
 
   def verify
-    params = {
-      :accessID  => self.access_id,
-      :timestamp => timestamp = Time.now.to_i,
-      :signature => signature(timestamp)
-    }
-    res_hash = do_http_request(VERIFY_URL, params, :get)
+    res_hash = do_http_request(VERIFY_URL, Hash.new, :get)
     res_hash['http_code'] == '200' ? true : false
   end
 
   def purchase params
-    timestamp = Time.now.to_i
-    params.merge!({
-      :accessID  => self.access_id,
-      :timestamp => timestamp,
-    })
-    sig = signature(timestamp, params)
-    params.merge!({ :signature => sig })
     res_hash = do_http_request PURCHASE_URL, params, :post
   end
 
   def referrals period_from, period_to, customer_email
-    timestamp = Time.now.to_i
     params = {
       :period_from => period_from,
       :period_to => period_to,
-      :customer_email => customer_email,
-      :accessID  => self.access_id,
-      :timestamp => timestamp,
+      :customer_email => customer_email
     }
-    sig = signature(timestamp, params)
-    params.merge!({ :signature => sig })
-    res_hash = do_http_request REFERRALS_URL, params, :get
+    do_http_request REFERRALS_URL, params, :get
   end
 
   private
 
-  def do_http_request url, params, method
+  def do_http_request url, in_params, method
+    timestamp = Time.now.to_i
+    params = in_params.merge({
+      :accessID  => self.access_id,
+      :timestamp => timestamp
+    })
+    params[:signature] = signature(params)
+
     uri          = URI.parse(url)
     uri.query    = params.to_query
     http         = Net::HTTP.new(uri.host, 443)
@@ -71,11 +61,7 @@ class ReferralCandy
     })
   end
 
-  def signature timestamp, params = {}
-    params = params.merge({
-      :accessID  => self.access_id,
-      :timestamp => timestamp
-    })
+  def signature params = {}
     collected_params = params.map{|k, v| "#{k}=#{v}"}.sort.join
     Digest::MD5.hexdigest(self.secret_key + collected_params)
   end
