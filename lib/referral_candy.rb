@@ -1,14 +1,23 @@
 require 'digest/md5'
-require 'active_support'
-require "net/https"
-require 'uri'
+require 'httparty'
 
 class ReferralCandy
-  VERIFY_URL   = "https://my.referralcandy.com/api/v1/verify.json"
-  PURCHASE_URL = "https://my.referralcandy.com/api/v1/purchase.json"
-  REFERRALS_URL = "https://my.referralcandy.com/api/v1/referrals.json"
+  DEFAULT_API_URL = "https://my.referralcandy.com/api/v1/"
+
+  include  HTTParty
+  base_uri DEFAULT_API_URL
+  format   :json
 
   attr_reader :secret_key, :access_id
+  class << self
+    def api_url= url
+      base_uri url
+      @api_url = url
+    end
+    def api_url
+      @api_url || DEFAULT_API_URL
+    end
+  end
 
   def initialize(access_id, secret_key)
     @access_id  = access_id
@@ -16,55 +25,57 @@ class ReferralCandy
   end
 
   def verify
-    res_hash = do_http_request(VERIFY_URL, Hash.new, :get)
-    res_hash['http_code'] == '200' ? true : false
+    ReferralCandy.get("/verify.json", :query => add_signature_to({}))
   end
 
   def purchase params
-    res_hash = do_http_request PURCHASE_URL, params, :post
+    ReferralCandy.post("/purchase.json", :query => add_signature_to(params))
   end
 
-  def referrals period_from, period_to, customer_email
+  def referrals period, customer_email
     params = {
-      :period_from => period_from,
-      :period_to => period_to,
+      :period_from    => period.first,
+      :period_to      => period.last,
       :customer_email => customer_email
     }
-    do_http_request REFERRALS_URL, params, :get
+    ReferralCandy.get("/referrals.json", :query => add_signature_to(params))
+  end
+
+  def referral params
+    ReferralCandy.post("/referral.json", :query => add_signature_to(params))
+  end
+
+  def referrer email_addr
+    ReferralCandy.get("/referrer.json", :query => add_signature_to(:customer_email => email_addr))
+  end
+
+  def contacts params
+    ReferralCandy.get("/contacts.json", :query => add_signature_to(params))
+  end
+
+  def self.get(*args, &block)
+    resp = super(*args, &block)
+    resp.parsed_response.merge('http_code' => resp.code)
+  end
+
+  def self.post(*args, &block)
+    resp = super(*args, &block)
+    resp.parsed_response.merge('http_code' => resp.code)
   end
 
   private
 
-  def do_http_request url, in_params, method
-    timestamp = Time.now.to_i
-    params = in_params.merge({
+  def add_signature_to input_params
+    params = input_params.merge({
       :accessID  => self.access_id,
-      :timestamp => timestamp
+      :timestamp => Time.now.to_i
     })
     params[:signature] = signature(params)
-
-    uri          = URI.parse(url)
-    uri.query    = params.to_query
-    http         = Net::HTTP.new(uri.host, 443)
-    http.use_ssl = true
-    res = if method == :post
-            http.post(uri.path, uri.query)
-          else
-            http.get(uri.request_uri)
-          end
-    api_response(res.body, res.code)
-  end
-
-  def api_response response_body, code
-    (JSON.parse(response_body) rescue {}).merge({
-      'http_code' => code
-    })
+    params
   end
 
   def signature params = {}
     collected_params = params.map{|k, v| "#{k}=#{v}"}.sort.join
     Digest::MD5.hexdigest(self.secret_key + collected_params)
   end
-
 end
-

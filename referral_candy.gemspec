@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
 
   s.require_paths = ["lib"]
 
-  s.add_dependency             "activesupport", ">= 2.3.5"
-  s.add_development_dependency "rspec", "1.3.2"
+  s.add_dependency             "httparty", ">= 0.8.0"
+  s.add_development_dependency "rspec", "2.9.0"
 
 end
