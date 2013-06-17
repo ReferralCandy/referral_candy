@@ -53,6 +53,10 @@ class ReferralCandy
     ReferralCandy.get("/contacts.json", :query => add_signature_to(params))
   end
 
+  def signup params
+    ReferralCandy.post("/signup.json", :query => add_signature_to(params))
+  end
+
   def self.get(*args, &block)
     resp = super(*args, &block)
     resp.parsed_response.merge('http_code' => resp.code)
