@@ -5,7 +5,7 @@ describe ReferralCandy do
 
   let(:secret_key)        { 'access_token' }
   let(:access_id)         { 'access_id' }
-  let(:refcandy)          { ReferralCandy.new(access_id, secret_key) }
+  let(:refcandy)          { ReferralCandy.new(access_id: access_id, secret_key: secret_key) }
   let(:params)            { {:name => "john"} }
   let(:pre_signed_params) { params.merge(:accessID => access_id, :timestamp => 1) }
 
@@ -59,26 +59,6 @@ describe ReferralCandy do
     it "should POST purchase.json with correct params" do
       ReferralCandy.should_receive(:post).once.with("/purchase.json", :query => refcandy.send(:add_signature_to, purchase_params))
       refcandy.purchase(purchase_params)
-    end
-  end
-
-  describe ".referrals" do
-    let(:referrals_period) { 1330584797..1330585397 }
-    let(:referrals_params) {{
-      :period_from    => referrals_period.first,
-      :period_to      => referrals_period.last,
-      :customer_email => "customer@anafore.com"
-    }}
-    it "should GET referrals.json with correct params" do
-      ReferralCandy.should_receive(:get).once.with("/referrals.json", :query => refcandy.send(:add_signature_to, referrals_params))
-      refcandy.referrals(referrals_period, "customer@anafore.com")
-    end
-  end
-
-  describe ".referrer" do
-    it "should GET referrer.json with correct params" do
-      ReferralCandy.should_receive(:get).once.with("/referrer.json", :query => refcandy.send(:add_signature_to, {:customer_email => "customer@anafore.com"} ))
-      refcandy.referrer("customer@anafore.com")
     end
   end
 end

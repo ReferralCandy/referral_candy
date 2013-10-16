@@ -3,6 +3,10 @@ require 'httparty'
 
 class ReferralCandy
   DEFAULT_API_URL = "https://my.referralcandy.com/api/v1/"
+  API_METHODS = {
+    get:  [:verify, :referrals, :referrer, :contacts],
+    post: [:purchase, :referral, :signup, :invite]
+  }
 
   include  HTTParty
   base_uri DEFAULT_API_URL
@@ -19,56 +23,19 @@ class ReferralCandy
     end
   end
 
-  def initialize(access_id, secret_key)
-    @access_id  = access_id
-    @secret_key = secret_key
+  def initialize(options = {})
+    @access_id  = options[:access_id]
+    @secret_key = options[:secret_key]
   end
 
-  def verify
-    ReferralCandy.get("/verify.json", :query => add_signature_to({}))
-  end
-
-  def purchase params
-    ReferralCandy.post("/purchase.json", :query => add_signature_to(params))
-  end
-
-  def referrals period, customer_email
-    params = {
-      :period_from    => period.first,
-      :period_to      => period.last,
-      :customer_email => customer_email
-    }
-    ReferralCandy.get("/referrals.json", :query => add_signature_to(params))
-  end
-
-  def referral params
-    ReferralCandy.post("/referral.json", :query => add_signature_to(params))
-  end
-
-  def referrer email_addr
-    ReferralCandy.get("/referrer.json", :query => add_signature_to(:customer_email => email_addr))
-  end
-
-  def contacts params
-    ReferralCandy.get("/contacts.json", :query => add_signature_to(params))
-  end
-
-  def signup params
-    ReferralCandy.post("/signup.json", :query => add_signature_to(params))
-  end
-
-  def invite params
-    ReferralCandy.post("/invite.json", :query => add_signature_to(params))
-  end
-
-  def self.get(*args, &block)
-    resp = super(*args, &block)
-    resp.parsed_response.merge('http_code' => resp.code)
-  end
-
-  def self.post(*args, &block)
-    resp = super(*args, &block)
-    resp.parsed_response.merge('http_code' => resp.code)
+  API_METHODS.each do |verb, end_points|
+    end_points.each do |ep|
+      class_eval <<-EVAL
+        def #{ep}(params = {})
+          ReferralCandy.#{verb}("/#{ep}.json", query: add_signature_to(params))
+        end
+      EVAL
+    end
   end
 
   private
