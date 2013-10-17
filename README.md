@@ -32,7 +32,7 @@ E.g.
     rc.contacts(:limit => 1).parsed_response
     # => {"message"=>"Success", "total_count"=>10000, "contacts"=>[{"id"=>1, "first_name"=>"Yink", "last_name"=>"Teo", "email"=>"hello@referralcandy.com", "purchase_made"=>false, "purchases"=>[], "unsubscribed"=>true}]}
 
-### API Response
+### API Responses
 
 The ReferralCandy API client uses [HTTParty](https://github.com/jnunemaker/httparty). API responses are wrapped in `HTTParty::Response` objects.
 
