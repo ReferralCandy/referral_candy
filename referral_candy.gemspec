@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.files         = `git ls-files`.split($\)
   s.test_files    = s.files.grep(%r{^(spec)/})
   s.require_paths = ["lib"]
+  s.license       = 'MIT'
 
   s.add_dependency             "httparty", ">= 0.8.0"
   s.add_development_dependency "rspec", "~> 2.9.0"
