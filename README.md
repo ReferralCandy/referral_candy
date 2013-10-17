@@ -28,6 +28,7 @@ This means that you would not be required to pass in the 'timestamp', 'accessID'
 [API endpoints](http://www.referralcandy.com/api) are available as methods in the ReferralCandy API client.
 
 E.g.
+
     rc.contacts(:limit => 1).parsed_response
     # => {"message"=>"Success", "total_count"=>10000, "contacts"=>[{"id"=>1, "first_name"=>"Yink", "last_name"=>"Teo", "email"=>"hello@referralcandy.com", "purchase_made"=>false, "purchases"=>[], "unsubscribed"=>true}]}
 
